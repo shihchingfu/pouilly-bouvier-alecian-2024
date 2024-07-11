@@ -6,60 +6,135 @@ self-contained: true
 ## 
 
 <center>
-![<https://doi.org/10.48550/arXiv.2406.17671>](images/title-authors-abstract.png){width=85%}
+
+![<https://doi.org/10.48550/arXiv.2406.17671>](images/title-authors-abstract.png){width="85%"}
+
 </center>
 
 ## Summary
 
-
-
-
-## Methodology
-
-- Use `pyaneti`
-
-## Data: Radial Velocities (RV)
-
-
-![](images/figure01.png)
-
-## Data: Bisector Inverse Slope (BIS)
-
-![](images/figure02.png)
+-   Examine HQ Tau, intermediate mass T Tauri star undergoing magnetospheric accretion.
+-   Variations in radial velocities (RV) observed in 2019-2020 cannot be solely attributed to stellar activity; a binary is one explanation.
+-   Multi-output Gaussian process regression to model RVs and bisector inverse slopes (BIS).
+-   Conclude that there is at least one companion; suspected brown dwarf.
 
 ## Data
 
-:::: {.columns}
+-   39 polarimetric observations.
+-   Collected over six months (2020 - 2021).
+-   Four instruments: 
+    - SPIRou
+    - ESPaDOnS
+    - Neo-Narval, and 
+    - SOPHIE.
 
-::: {.column width="50%"}
-![](images/figure03.png)
+## Data: Radial Velocities (RV)
+
+![](images/figure01.png)
+
+"mean of $V_r \approx 17$ km s^−1^ on a period of about 100 days"
+
+Lomb-Scargle $P \approx 2.5$ days.
+
+## Data: Bisector Inverse Slope (BIS)
+
+::: columns
+::: {.column width="65%"}
+![](images/figure02.png)
 :::
 
+::: {.column width="35%"}
+![](images/figure03.png)
+
+Lomb-Scargle $P \approx 2.42$ days.
+:::
+:::
+
+## Data
+
+::: columns
 ::: {.column width="50%"}
 ![](images/figure04.png)
 :::
 
-::::
+::: {.column width="50%"}
+![](images/quotation-sec3.2.png)
+Q: Averaging bisectors throws away information?
+:::
 
-## GP Model
+:::
 
+## Methodology
+
+1.  Obtain high-res spectroscopy.
+2.  Fit MOGP to RV and BIS.
+    - No companion (without Keplerian modulation)
+    - One companion (with Keplerian modulation)
+    - Two companions (with Keplerian modulation)
+3.  Compare the model fits
+    - AICc
+    - LOOCV
+
+Used `pyaneti` package with 500 MCMC chains.
+
+## Multi-Output GP Model
+
+-   Mean function is Keplerian function.
+-   Covariance kernel is the sum of white noise (WN) and quasi-periodic (QP) kernels.
+-   Fitted to RV and BIS of LSD profiles.
+
+$P_{GP}$ is rotation period, $\lambda_e$ stellar spot lifetime, $\lambda_p$ "wiggliness" within a period.
 
 ## Posteriors
 
-:::: {.columns}
-
+::: columns
 ::: {.column width="50%"}
-
 ![](images/table01.png)
 :::
 
 ::: {.column width="50%"}
-
 ![](images/figure05.png)
-
+:::
 :::
 
-::::
+## Results: No companion
+
+<center>![](images/figureB1.png){width="100%"}</center>
+
+## Results: One companion
+
+<center>![](images/figure06.png){width="100%"}</center>
+
+## Results: One companion 
+
+- Brown dwarf companion with minimal mass of $50.1^{+29.6}_{-32.0}$ M~jup~.
+- Semi-major axis of $\approx 0.61$ AU.
+- Period of $126^{+32}_{-55}$ days.
+
+## 
+
+<center>![](images/figureC1.png){width="70%"} ![](images/figureC2.png){width="70%"} ![](images/figureC3.png){width="70%"}</center>
+
+## Results
+
+<center>![](images/table02.png)</center>
+
+## Conclusions
+
+- There is at least one companion to HQ Tau.
+- Strongly suspect a brown dwarf plus a third component.
+- Need more observations outside the inflexion point of tertiary orbital motion.
+
+## Statistical Comments
+
+- Fitting multiple models and comparing is a good approach, but need to be guided by physics on what's plausible.
+- Data missingness
+    -   Moon contamination removed 2 observations in 11/2020.
+    -   Dropped observations for which RV or BIS missing.
+    -   Three year gap between datasets.
+- Relationship between RV and BIS is only weak/moderate.
+- "Multi-output" vs "multi-variate" vs "multi-dimensional" GP.
+- Very informative priors were used.
 
 ## 
 
@@ -74,55 +149,22 @@ n_draws <- 10000
 
 set.seed(1)
 draws <- data.frame(
-  t0_prior = rnorm(n_draws, 9095, 40),
-  t0_posterior = rnorm(n_draws, 9080.27, mean(c(21.25,20.41))),
+  T0_prior = rnorm(n_draws, 9095, 40),
+  T0_posterior = rnorm(n_draws, 9080.27, mean(c(21.25,20.41))),
   Porb_prior = rnorm(n_draws, 100, 50),
   Porb_posterior = rnorm(n_draws, 125.8, mean(c(31.5, 55.2))),
+  Prot_prior = rnorm(n_draws, 2.42, 0.05),
+  Prot_posterior = rnorm(n_draws, 2.43, 0.04),
   K_prior = runif(n_draws, -5, 5),
   K_posterior = rnorm(n_draws, 1.25, mean(c(0.83, 0.71)))
 ) |> 
   pivot_longer(everything(), names_to = "param_dist", values_to = "draw") |> 
-  separate(param_dist, into = c("parameter", "distribution"))
+  separate(param_dist, into = c("parameter", "Distribution")) |> 
+  mutate(parameter = factor(parameter, levels = c("K", "T0", "Prot", "Porb")))
 
 ggplot(draws) +
-  aes(x = draw, fill = distribution) +
+  aes(x = draw, fill = Distribution) +
   geom_density(alpha = 0.5) +
-  facet_wrap(vars(parameter), scales = "free") +
+  facet_wrap(vars(parameter), scales = "free", ncol = 2) +
   theme(legend.position = "top")
 ```
-
-
-
-## Results: Keplerian companion
-
-<center>
-![](images/figure06.png){width=100%}
-</center>
-
-
-## Results: No Keplerian companion
-
-<center>
-![](images/figureB1.png){width=100%}
-</center>
-
-##
-
-<center>
-![](images/figureC1.png){width=70%}
-![](images/figureC2.png){width=70%}
-![](images/figureC3.png){width=70%}
-</center>
-
-## Results
-
-<center>
-![](images/table02.png)
-</center>
-
-
-## Conclusions
-
-
-## Comments
-
