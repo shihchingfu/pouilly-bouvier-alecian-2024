@@ -14,7 +14,7 @@ self-contained: true
 ## Summary
 
 -   Examine HQ Tau, intermediate mass T Tauri star undergoing magnetospheric accretion.
--   Variations in radial velocities (RV) observed in 2019-2020 cannot be solely attributed to stellar activity; a binary is one explanation.
+-   Variations in radial velocities (RV) observed in 2019-2020 cannot be solely attributed to stellar spot activity; a binary is one explanation.
 -   Multi-output Gaussian process regression to model RVs and bisector inverse slopes (BIS).
 -   Conclude that there is at least one companion; suspected brown dwarf.
 
@@ -27,7 +27,8 @@ self-contained: true
     - ESPaDOnS
     - Neo-Narval, and 
     - SOPHIE.
-
+-   14 observations in 2017 reported in Pouilly et al. (2020)
+    
 ## Data: Radial Velocities (RV)
 
 ![](images/figure01.png)
@@ -79,11 +80,15 @@ Used `pyaneti` package with 500 MCMC chains.
 
 ## Multi-Output GP Model
 
--   Mean function is Keplerian function.
--   Covariance kernel is the sum of white noise (WN) and quasi-periodic (QP) kernels.
--   Fitted to RV and BIS of LSD profiles.
-
-$P_{GP}$ is rotation period, $\lambda_e$ stellar spot lifetime, $\lambda_p$ "wiggliness" within a period.
+-   Two response variables: RV, BIS.
+-   Mean function is Keplerian function (or zero).
+-   Covariance kernel: white noise (WN) + quasi-periodic (QP).
+-   Interpretation of hyperaparameters:
+    - $P_{GP}$, rotation period
+    - $\lambda_e$, stellar spot lifetime
+    - $\lambda_p$, "wiggliness" within a period
+    - $T0$, transit epoch
+    - $K$, semi-amplitude
 
 ## Posteriors
 
@@ -107,7 +112,7 @@ $P_{GP}$ is rotation period, $\lambda_e$ stellar spot lifetime, $\lambda_p$ "wig
 
 ## Results: One companion 
 
-- Brown dwarf companion with minimal mass of $50.1^{+29.6}_{-32.0}$ M~jup~.
+- Brown dwarf companion with minimal mass $50.1^{+29.6}_{-32.0}$ M~jup~.
 - Semi-major axis of $\approx 0.61$ AU.
 - Period of $126^{+32}_{-55}$ days.
 
@@ -128,11 +133,11 @@ $P_{GP}$ is rotation period, $\lambda_e$ stellar spot lifetime, $\lambda_p$ "wig
 ## Statistical Comments
 
 - Fitting multiple models and comparing is a good approach, but need to be guided by physics on what's plausible.
+- Relationship between RV and BIS is only weak/moderate.
 - Data missingness
     -   Moon contamination removed 2 observations in 11/2020.
     -   Dropped observations for which RV or BIS missing.
     -   Three year gap between datasets.
-- Relationship between RV and BIS is only weak/moderate.
 - "Multi-output" vs "multi-variate" vs "multi-dimensional" GP.
 - Very informative priors were used.
 
